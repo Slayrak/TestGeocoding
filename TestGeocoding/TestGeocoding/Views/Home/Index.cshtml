@@ -1,8 +1,98 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
+@*
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>*@
+
+<div style="display:flex; justify-content: center; flex-direction:column">
+    <div style="display:flex; justify-content: center;">
+        <select class="form-control geocodingOption" id="geocodingOption" name="geocodingOption" style="width: 30%;">
+            <option  value="Long">To Latitude and Longitude</option>
+            <option value="Street">To Street</option>
+        </select>
+    </div>
+    
+    <div style="display: none; margin-top: 15px" id="long">
+        <div style="display: flex; justify-content: center">
+            <form id="longlatform" style="width:50%; display: flex; justify-content: center; flex-direction: column">
+                <table style="align-content: center">
+                    <tr>
+                        <td style="margin-left: 5px">Longitude</td>
+                        <td><input name="longitude" type="number" /></td>
+                    </tr>
+                    <tr>
+                        <td style="margin-left: 10px">Latitude</td>
+                        <td><input id="latitude" name="Latitude" type="number" /></td>
+                    </tr>
+                </table>
+                <div style="display: flex; justify-content: center; margin-top: 15px">
+                    <input id="btnsubmit" class="btn btn-outline-dark" type="button" value="Submit" />
+                </div>
+
+            </form>
+        </div>
+    </div>
+    <div style="display: none; margin-top: 15px" id="street">
+        <div style="display: flex; justify-content: center">
+            <form id="addressForm" style="width:50%; display: flex; justify-content: center; flex-direction: column">
+                <table style="align-content: center">
+                    <tr>
+                        <td style="margin-left: 5px">Address</td>
+                        <td><input name="Address" type="text" /></td>
+                    </tr>
+                </table>
+                <div style="display: flex; justify-content: center; margin-top: 15px">
+                    <input id="btnsubmit" class="btn btn-outline-dark" type="button" value="Submit" />
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+
+    <div id="ForPartial">
+        @Html.Partial("Partial")
+    </div>
+
+
 </div>
+
+@section Scripts 
+{
+    <script type="text/javascript">
+        $("document").ready(function () {
+            var val = $("#geocodingOption").val()
+
+            if (val == "Long") {
+                $("#long").show();
+            }
+            else 
+            {
+                $("#street").show();
+            }
+
+
+        });
+
+        $("#geocodingOption").change(function() {
+
+            var val = $("#geocodingOption").val()
+            if (val == "Long") {
+                $("#long").show();
+                $("#street").hide();
+            }
+            else 
+            {
+                $("#street").show();
+                $("#long").hide();
+            }
+
+        });
+
+
+    
+    </script>
+}
