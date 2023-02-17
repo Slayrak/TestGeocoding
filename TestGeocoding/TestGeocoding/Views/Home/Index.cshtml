@@ -17,39 +17,31 @@
     
     <div style="display: none; margin-top: 15px" id="long">
         <div style="display: flex; justify-content: center">
-            <form id="longlatform" style="width:50%; display: flex; justify-content: center; flex-direction: column">
-                <table style="align-content: center">
-                    <tr>
+                <table style="align-content: center; width:50%">
+                    <tr style="display: flex; justify-content: space-around">
                         <td style="margin-left: 5px">Longitude</td>
-                        <td><input name="longitude" type="number" /></td>
+                        <td><input id="longitude" type="number" /></td>
                     </tr>
-                    <tr>
+                    <tr style="display: flex; justify-content: space-around">
                         <td style="margin-left: 10px">Latitude</td>
                         <td><input id="latitude" name="Latitude" type="number" /></td>
                     </tr>
                 </table>
-                <div style="display: flex; justify-content: center; margin-top: 15px">
-                    <input id="btnsubmit" class="btn btn-outline-dark" type="button" value="Submit" />
-                </div>
-
-            </form>
         </div>
     </div>
     <div style="display: none; margin-top: 15px" id="street">
         <div style="display: flex; justify-content: center">
-            <form id="addressForm" style="width:50%; display: flex; justify-content: center; flex-direction: column">
-                <table style="align-content: center">
-                    <tr>
-                        <td style="margin-left: 5px">Address</td>
-                        <td><input name="Address" type="text" /></td>
-                    </tr>
-                </table>
-                <div style="display: flex; justify-content: center; margin-top: 15px">
-                    <input id="btnsubmit" class="btn btn-outline-dark" type="button" value="Submit" />
-                </div>
-
-            </form>
+            <table style="align-content: center; width:50%">
+                <tr style="display: flex; justify-content: space-around">
+                    <td>Address</td>
+                    <td><input id="address" type="text" /></td>
+                </tr>
+            </table>
         </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; margin-top: 15px">
+        <input id="btnsubmit" class="btn btn-outline-dark" type="button" value="Submit" />
     </div>
 
 
@@ -90,8 +82,108 @@
                 $("#long").hide();
             }
 
+            $('#ForPartial').html("");
+
         });
 
+        $("#btnsubmit").click(function (e) {
+
+            var val = $("#geocodingOption").val()
+
+            let valdata;
+
+            if (val == "Long") {
+                var long = $("#longitude").val()
+                var lat = $("#latitude").val()
+
+                $.ajax({
+                    url: "@(Url.Action("GetAddress", "Home"))",
+                    type: "Get",
+                    data: { latitude: lat, longitude: long },
+                    success: function (response) {
+                        var obj = JSON.parse(response)
+                        var html_to_append = '<ul>';
+                        $.each(obj, function (i, item) {
+                            if (Array.isArray(item) == true) {
+                                let html_to_append_mini = '';
+
+                                html_to_append += '<li>' + 'Results';
+
+                                for (var j = 0; j < obj[i].length; j++) {
+                                    var objInner = JSON.parse(JSON.stringify(obj[i][j]));
+                                    html_to_append_mini = '<ul>' + objInner["formatted_address"];
+                                    html_to_append_mini += '<li>' + 'latitude: ' + objInner["geometry"].location.lat + '</li>';
+                                    html_to_append_mini += '<li>' + 'longitude: ' + objInner["geometry"].location.lng + '</li>';
+                                    html_to_append_mini += '</ul>';
+                                    html_to_append_mini += '<br/>'
+                                    html_to_append += html_to_append_mini;
+
+                                }
+
+                                html_to_append += '</li>';
+
+                                //html_to_append_mini += objInner["geometry"].location.lat;
+                                //html_to_append_mini += objInner["geometry"].location.lng;
+
+                                //html_to_append += html_to_append_mini;
+                            }
+
+                            
+                        })
+
+                        html_to_append += '<li>' + 'status code:' + obj["status"] + '</li>';
+
+                        html_to_append += '</ul>'
+                        $('#ForPartial').html(html_to_append);
+                    }
+                });
+
+
+            }
+            else 
+            {
+                valdata = $("#address").val()
+                $.ajax({
+                    url: "@(Url.Action("GetLongLat", "Home"))",
+                    type: "Get",
+                    data: { street: valdata },
+                    success: function (response) {
+                        var obj = JSON.parse(response)
+                        var html_to_append = '<ul>';
+                        $.each(obj, function (i, item) {
+                            if (Array.isArray(item) == true) {
+                                let html_to_append_mini = '';
+
+                                html_to_append += '<li>' + 'Results';
+
+                                for (var j = 0; j < obj[i].length; j++) {
+                                    var objInner = JSON.parse(JSON.stringify(obj[i][j]));
+                                    html_to_append_mini = '<ul>' + objInner["formatted_address"];
+                                    html_to_append_mini += '<li>' + 'latitude: ' + objInner["geometry"].location.lat + '</li>';
+                                    html_to_append_mini += '<li>' + 'longitude: ' + objInner["geometry"].location.lng + '</li>';
+                                    html_to_append_mini += '</ul>';
+                                    html_to_append += html_to_append_mini;
+
+                                }
+
+                                html_to_append += '</li>';
+
+                                //html_to_append_mini += objInner["geometry"].location.lat;
+                                //html_to_append_mini += objInner["geometry"].location.lng;
+
+                                //html_to_append += html_to_append_mini;
+                            } else {
+                                html_to_append += '<li>' + 'status code:' + item + '</li>';
+                            }
+
+                            html_to_append += '</ul>'
+                        })
+                        $('#ForPartial').html(html_to_append);
+                    }
+                });
+            }
+
+        });
 
     
     </script>
