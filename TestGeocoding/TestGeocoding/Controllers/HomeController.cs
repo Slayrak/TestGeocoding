@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.IO;
+using TestGeocoding.Extentions;
 using TestGeocoding.Models;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -11,10 +13,12 @@ namespace TestGeocoding.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IDistributedCache _distributedCache;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IDistributedCache distributedCache)
         {
             _logger = logger;
+            _distributedCache = distributedCache;
         }
 
         public IActionResult Index()
@@ -35,19 +39,44 @@ namespace TestGeocoding.Controllers
 
 
         [HttpGet]
-        public IActionResult GetLongLat(string street)
+        public async Task<JsonResult> GetLongLat(string street)
         {
-            var result = new System.Net.WebClient().DownloadString(
+            string check = await _distributedCache.GetRecordAsync(street);
+
+            if (string.IsNullOrEmpty(check))
+            {
+                var innerresult = new System.Net.WebClient().DownloadString(
                $"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key=AIzaSyDUZFWbzmf7Nyf4F3kbX-IdOPhDNYj0l1A");
+
+                await _distributedCache.SetRecordAsync(street, innerresult);
+
+                return Json(innerresult);
+            }
+
+            var result = check;
 
             return Json(result);
         }
 
         [HttpGet]
-        public IActionResult GetAddress(string latitude, string longitude) 
+        public async Task<JsonResult> GetAddress(string latitude, string longitude) 
         {
-            var result = new System.Net.WebClient().DownloadString(
+
+            string pass = latitude + longitude;
+
+            string check = await _distributedCache.GetRecordAsync(pass);
+
+            if(string.IsNullOrEmpty(check))
+            {
+                var innerresult = new System.Net.WebClient().DownloadString(
                $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key=AIzaSyDUZFWbzmf7Nyf4F3kbX-IdOPhDNYj0l1A&location_type=ROOFTOP");
+
+                await _distributedCache.SetRecordAsync(pass, innerresult);
+
+                return Json(innerresult);
+            }
+
+            var result = check;
 
             return Json(result);
         }

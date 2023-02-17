@@ -104,7 +104,7 @@
                         var obj = JSON.parse(response)
                         var html_to_append = '<ul>';
                         $.each(obj, function (i, item) {
-                            if (Array.isArray(item) == true) {
+                            if (Array.isArray(item) == true && item.length != 0) {
                                 let html_to_append_mini = '';
 
                                 html_to_append += '<li>' + 'Results';
@@ -151,7 +151,7 @@
                         var obj = JSON.parse(response)
                         var html_to_append = '<ul>';
                         $.each(obj, function (i, item) {
-                            if (Array.isArray(item) == true) {
+                            if (Array.isArray(item) == true && item.length != 0) {
                                 let html_to_append_mini = '';
 
                                 html_to_append += '<li>' + 'Results';
@@ -162,6 +162,7 @@
                                     html_to_append_mini += '<li>' + 'latitude: ' + objInner["geometry"].location.lat + '</li>';
                                     html_to_append_mini += '<li>' + 'longitude: ' + objInner["geometry"].location.lng + '</li>';
                                     html_to_append_mini += '</ul>';
+                                    html_to_append_mini += '<br/>';
                                     html_to_append += html_to_append_mini;
 
                                 }
