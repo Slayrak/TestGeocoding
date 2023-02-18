@@ -63,8 +63,6 @@ namespace TestGeocoding.Tests
         [Fact]
         public void HomeController_GetLongLat_isNotNull() 
         {
-            string inc = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-
             var result = _homeController.GetLongLat("Kobrynskoi St");
 
             var checkagain = result.Result.Value as string;
@@ -74,6 +72,20 @@ namespace TestGeocoding.Tests
             var name = data.results[0].address_components[0].short_name;
 
             Assert.True(name.Value == "Kobrynskoi St");
+        }
+
+        [Fact]
+        public void HomeController_GetAddress_isNotNull()
+        {
+            var result = _homeController.GetAddress("49.8623618", "23.9967532");
+
+            var checkagain = result.Result.Value as string;
+
+            dynamic data = JObject.Parse(checkagain);
+
+            var name = data.results[0].address_components[1].short_name;
+
+            Assert.True(name.Value == "Vynnytsya St");
         }
     }
 }
