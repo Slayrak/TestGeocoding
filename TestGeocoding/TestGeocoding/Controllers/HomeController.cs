@@ -14,20 +14,25 @@ namespace TestGeocoding.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IDistributedCache _distributedCache;
+        private readonly IConfiguration _configuration;
 
-        public HomeController(ILogger<HomeController> logger, IDistributedCache distributedCache)
+        public HomeController(ILogger<HomeController> logger, IDistributedCache distributedCache, IConfiguration configuration)
         {
             _logger = logger;
             _distributedCache = distributedCache;
+            _configuration = configuration;
+
         }
 
         public IActionResult Index()
         {
+            _logger.LogInformation("Accessed the main page", DateTime.UtcNow);
             return View();
         }
 
         public IActionResult Privacy()
         {
+            _logger.LogInformation("Redirected to the privacy page", DateTime.UtcNow);
             return View();
         }
 
@@ -41,18 +46,40 @@ namespace TestGeocoding.Controllers
         [HttpGet]
         public async Task<JsonResult> GetLongLat(string street)
         {
-            string check = await _distributedCache.GetRecordAsync(street);
+            string check = "";
+
+            try
+            {
+                check = await _distributedCache.GetRecordAsync(street);
+            } catch (Exception ex)
+            {
+                _logger.LogError("No connection to the database", DateTime.UtcNow);
+            }
 
             if (string.IsNullOrEmpty(check))
             {
+                _logger.LogInformation("Cache did not find entry with parameter " + street, DateTime.UtcNow);
+                _logger.LogInformation("Geocoding with parameter " + street, DateTime.UtcNow);
+
                 var innerresult = new System.Net.WebClient().DownloadString(
-               $"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key=AIzaSyDUZFWbzmf7Nyf4F3kbX-IdOPhDNYj0l1A");
+               $"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key={_configuration["KEY"]}");
 
-                await _distributedCache.SetRecordAsync(street, innerresult);
+                _logger.LogInformation("Retrieved information from google api with parameter " + street, DateTime.UtcNow);
 
+                try
+                {
+                    await _distributedCache.SetRecordAsync(street, innerresult);
+                    _logger.LogInformation("Successfully cached information", DateTime.UtcNow);
+
+                } catch (Exception ex)
+                {
+                    _logger.LogError("No connection to the database", DateTime.UtcNow);
+                }
+                
                 return Json(innerresult);
             }
 
+            _logger.LogInformation("Cache found entry with parameter " + street, DateTime.UtcNow);
             var result = check;
 
             return Json(result);
@@ -64,18 +91,41 @@ namespace TestGeocoding.Controllers
 
             string pass = latitude + longitude;
 
-            string check = await _distributedCache.GetRecordAsync(pass);
+            string check = "";
+
+            try
+            {
+                check = await _distributedCache.GetRecordAsync(pass);
+            } catch (Exception ex)
+            {
+                _logger.LogError("No connection to the database", DateTime.UtcNow);
+            }
+
 
             if(string.IsNullOrEmpty(check))
             {
-                var innerresult = new System.Net.WebClient().DownloadString(
-               $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key=AIzaSyDUZFWbzmf7Nyf4F3kbX-IdOPhDNYj0l1A&location_type=ROOFTOP");
+                _logger.LogInformation("Cache did not find entry with latitude: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
+                _logger.LogInformation("Geocoding with latitude: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
 
-                await _distributedCache.SetRecordAsync(pass, innerresult);
+                var innerresult = new System.Net.WebClient().DownloadString(
+               $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={_configuration["KEY"]}&location_type=ROOFTOP");
+
+                _logger.LogInformation("Retrieved information from google api with: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
+
+                try
+                {
+                    await _distributedCache.SetRecordAsync(pass, innerresult);
+                    _logger.LogInformation("Successfully cached information", DateTime.UtcNow);
+                } catch (Exception ex)
+                {
+                    _logger.LogError("No connection to the database", DateTime.UtcNow);
+                }
+                
 
                 return Json(innerresult);
             }
 
+            _logger.LogInformation("Cache found entry with latitude: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
             var result = check;
 
             return Json(result);
