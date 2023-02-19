@@ -24,29 +24,13 @@ namespace TestGeocoding.Tests
         private HomeController _homeController;
         public HomeControllerTests()
         {
-            if (File.Exists("../../../../../../.env"))
-            {
-                foreach (var line in File.ReadAllLines("../../../../../../.env"))
-                {
-                    var parts = line.Split(
-                        '=',
-                        StringSplitOptions.RemoveEmptyEntries);
 
-                    if (parts.Length != 2)
-                        continue;
-
-                    Environment.SetEnvironmentVariable(parts[0], parts[1]);
-
-                }
-            }
+           var checker = Environment.GetEnvironmentVariable("API_KEY");
 
             _distributedCache = A.Fake<IDistributedCache>();
             _logger = A.Fake<ILogger<HomeController>>();
-            _configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
 
-            var check = _configuration["KEY"];
-
-            _homeController = new HomeController(_logger, _distributedCache, _configuration);
+            _homeController = new HomeController(_logger, _distributedCache);
 
             
         }

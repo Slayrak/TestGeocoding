@@ -16,11 +16,11 @@ namespace TestGeocoding.Controllers
         private readonly IDistributedCache _distributedCache;
         private readonly IConfiguration _configuration;
 
-        public HomeController(ILogger<HomeController> logger, IDistributedCache distributedCache, IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, IDistributedCache distributedCache)
         {
             _logger = logger;
             _distributedCache = distributedCache;
-            _configuration = configuration;
+            _configuration = new ConfigurationBuilder().AddEnvironmentVariables("TestGeocoding_").Build();
 
         }
 
@@ -62,9 +62,19 @@ namespace TestGeocoding.Controllers
                 _logger.LogInformation("Geocoding with parameter " + street, DateTime.UtcNow);
 
                 var innerresult = new System.Net.WebClient().DownloadString(
-               $"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key={_configuration["KEY"]}");
+               $"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key={_configuration["API_KEY"]}");
 
                 _logger.LogInformation("Retrieved information from google api with parameter " + street, DateTime.UtcNow);
+
+                if (!string.IsNullOrEmpty(_configuration["API_KEY"]))
+                {
+                    _logger.LogInformation($"https://maps.googleapis.com/maps/api/geocode/json?address={street},&key={_configuration["API_KEY"].Substring(0,3)}");
+                } 
+                else
+                {
+                    _logger.LogError("No google api key");
+                }
+                
 
                 try
                 {
@@ -80,6 +90,7 @@ namespace TestGeocoding.Controllers
             }
 
             _logger.LogInformation("Cache found entry with parameter " + street, DateTime.UtcNow);
+            _logger.LogInformation(check);
             var result = check;
 
             return Json(result);
@@ -108,9 +119,18 @@ namespace TestGeocoding.Controllers
                 _logger.LogInformation("Geocoding with latitude: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
 
                 var innerresult = new System.Net.WebClient().DownloadString(
-               $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={_configuration["KEY"]}&location_type=ROOFTOP");
+               $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={_configuration["API_KEY"]}&location_type=ROOFTOP");
 
                 _logger.LogInformation("Retrieved information from google api with: " + latitude + " and longitude: " + longitude, DateTime.UtcNow);
+
+                if (!string.IsNullOrEmpty(_configuration["API_KEY"]))
+                {
+                    _logger.LogInformation($"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude},&key={_configuration["API_KEY"].Substring(0, 3)}");
+                }
+                else
+                {
+                    _logger.LogError("No google api key");
+                }
 
                 try
                 {
